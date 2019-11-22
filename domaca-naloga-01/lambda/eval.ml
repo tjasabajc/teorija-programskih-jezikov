@@ -3,7 +3,7 @@ module S = Syntax
 
 let rec eval_exp = function
   | S.Var x -> failwith "Expected a closed term"
-  | S.Int _ | S.Bool _ | S.Lambda _ | S.RecLambda _ as e -> e
+  | S.Int _ | S.Bool _ | S.Lambda _ | S.RecLambda _ | S.Nil as e -> e
   | S.Plus (e1, e2) ->
       let n1 = eval_int e1
       and n2 = eval_int e2
@@ -43,6 +43,17 @@ let rec eval_exp = function
       | S.RecLambda (f, x, e) as rec_f -> eval_exp (S.subst [(f, rec_f); (x, v)] e)
       | _ -> failwith "Function expected"
       end
+  |S.Pair (e1,e2) ->
+    S.Pair (eval_exp e1, eval_exp e2)
+  |S.Fst e -> S.Fst (eval_exp e)
+  |S.Snd e -> S.Snd (eval_exp e)
+  |S.Cons (e, es) -> S.Cons (eval_exp e, eval_exp es)    
+  |S.Match (e, e1, x, xs, e2) -> let e' = eval_exp e in
+    begin match e' with
+    | S.Nil -> eval_exp e1
+    | S.Cons(x,xs) -> eval_exp e2
+    end
+    
 and eval_int e =
   match eval_exp e with
   | S.Int n -> n

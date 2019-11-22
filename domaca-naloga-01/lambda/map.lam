@@ -1,0 +1,5 @@
+LET map f x = x
+f x = x + 4
+l = [4, 40, 4004]
+IN
+map f l
