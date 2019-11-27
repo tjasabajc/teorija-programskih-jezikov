@@ -1,10 +1,6 @@
-LET f = FUN x -> (x + 4)
-IN
-LET b = 2
-IN
-LET sezb = ((f b) :: (f b) :: [])
+LET a = {1,10} :: {2,20} :: {3,30} :: []
 IN
 LET map = (REC map f -> (FUN s -> 
 MATCH s WITH | [] -> [] | x :: xs -> (f x) :: (map f xs)))
-IN 
-map f sezb
+IN
+LET split = FUN sez -> {map FST sez, map SND sez}

@@ -43,15 +43,17 @@ let rec eval_exp = function
       | S.RecLambda (f, x, e) as rec_f -> eval_exp (S.subst [(f, rec_f); (x, v)] e)
       | _ -> failwith "Function expected"
       end
-  |S.Pair (e1,e2) ->
+  | S.Pair (e1,e2) ->
     S.Pair (eval_exp e1, eval_exp e2)
-  |S.Fst e -> S.Fst (eval_exp e)
-  |S.Snd e -> S.Snd (eval_exp e)
-  |S.Cons (e, es) -> S.Cons (eval_exp e, eval_exp es)    
-  |S.Match (e, e1, x, xs, e2) -> let e' = eval_exp e in
+  | S.Fst S.Pair(e1, e2) -> eval_exp e1
+  | S.Fst e -> S.Fst (eval_exp e)
+  | S.Snd S.Pair(e1, e2) -> eval_exp e2
+  | S.Snd e -> S.Snd (eval_exp e)
+  | S.Cons (e, es) -> S.Cons (eval_exp e, eval_exp es)    
+  | S.Match (e, e1, x, xs, e2) -> let e' = eval_exp e in
     begin match e' with
     | S.Nil -> eval_exp e1
-    | S.Cons(x,xs) -> eval_exp e2
+    | S.Cons(y,ys) -> eval_exp (S.subst [(x,y);(xs,ys)] e2)
     | _ -> failwith "List expected"
     end
     
@@ -91,10 +93,19 @@ let rec step = function
   | S.Apply (S.RecLambda (f, x, e) as rec_f, v) when is_value v -> S.subst [(f, rec_f); (x, v)] e
   | S.Apply ((S.Lambda _ | S.RecLambda _) as f, e) -> S.Apply (f, step e)
   | S.Apply (e1, e2) -> S.Apply (step e1, e2)
-  | S.Pair (S.Int n1. S.Int n2) -> failwith "Expected a non-terminal expression"
-  | S.Pair (S.Int n1. e2) -> S.Pair (S.Int n1, step e2)
-  | S.Pair (e1. e2) -> S.Pair (step e1, e2)
-  | S.Cons (Int)
+  | S.Pair (S.Int n1, S.Int n2) -> failwith "Expected a non-terminal expression"
+  | S.Pair (S.Int n1, e2) -> S.Pair (S.Int n1, step e2)
+  | S.Pair (e1, e2) -> S.Pair (step e1, e2)
+  | S.Cons (S.Int n1, es) -> S.Cons (S.Int n1, step es)
+  | S.Cons (e, es) -> S.Cons (step e, es)
+  | S.Fst S.Pair(e1, e2) -> if is_value e1 then e1 else step e1
+  | S.Fst _ -> failwith "Expected a pair"
+  | S.Snd S.Pair(e1, e2) -> if is_value e2 then e1 else step e2
+  | S.Snd _ -> failwith "Expected a pair"
+  | S.Match (S.Nil, e1, x, xs, e2) -> e1
+  | S.Match (S.Cons(y, ys), e1, x, xs, e2) -> if is_value y then step (S.subst [(x,y);(xs,ys)] e2) else S.Match (S.Cons(step y,ys), e1, x, xs, e2)
+  | S.Match (e, e1, x, xs, e2) -> S.Match ((step e), e1, x, xs, e2)  
+
 let big_step e =
   let v = eval_exp e in
   print_endline (S.string_of_exp v)
