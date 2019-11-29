@@ -2,7 +2,7 @@ LET f = FUN x -> (x + 4)
 IN
 LET b = 2
 IN
-LET sezb = ((f b) :: (f b) :: [])
+LET sezb = ((b) :: (f b) :: [])
 IN
 LET map = (REC map f -> (FUN s -> 
 MATCH s WITH | [] -> [] | x :: xs -> (f x) :: (map f xs)))

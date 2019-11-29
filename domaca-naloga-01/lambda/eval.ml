@@ -62,10 +62,12 @@ and eval_int e =
   | S.Int n -> n
   | _ -> failwith "Integer expected"
 
-let is_value = function
-  | S.Int _ | S.Bool _ | S.Lambda _ | S.RecLambda _ | S.Nil | S.Pair (_,_) | S.Cons (_,_) -> true
+let rec is_value = function
+  | S.Int _ | S.Bool _ | S.Lambda _ | S.RecLambda _ | S.Nil -> true
   | S.Var _ | S.Plus _ | S.Minus _ | S.Times _ | S.Equal _ | S.Less _ | S.Greater _
   | S.IfThenElse _ | S.Apply _ | S.Fst _ | S.Snd _ | S.Match (_,_,_,_,_) -> false
+  | S.Cons (e1,e2) -> is_value e1 && is_value e2
+  | S.Pair (e1,e2) -> is_value e1 && is_value e2
 
 let rec step = function
   | S.Var _ | S.Int _ | S.Bool _ | S.Lambda _ | S.RecLambda _ | S.Nil -> failwith "Expected a non-terminal expression"
@@ -93,9 +95,7 @@ let rec step = function
   | S.Apply (S.RecLambda (f, x, e) as rec_f, v) when is_value v -> S.subst [(f, rec_f); (x, v)] e
   | S.Apply ((S.Lambda _ | S.RecLambda _) as f, e) -> S.Apply (f, step e)
   | S.Apply (e1, e2) -> S.Apply (step e1, e2)
-  | S.Pair (S.Int n1, S.Int n2) -> failwith "Expected a non-terminal expression"
-  | S.Pair (S.Int n1, e2) -> S.Pair (S.Int n1, step e2)
-  | S.Pair (e1, e2) -> S.Pair (step e1, e2)
+  | S.Pair (e1, e2) -> if is_value e1 then S.Pair (e1, step e2) else S.Pair (step e1, e2)
   | S.Cons (S.Int n1, es) -> S.Cons (S.Int n1, step es)
   | S.Cons (e, es) -> S.Cons (step e, es)
   | S.Fst S.Pair(e1, e2) -> if is_value e1 then e1 else step e1

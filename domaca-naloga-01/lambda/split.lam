@@ -1,6 +1,12 @@
-LET a = {1,10} :: {2,20} :: {3,30} :: []
+LET f = FUN x -> FST x
+IN
+LET g = FUN x -> SND x
+IN
+LET a = ({1,10} :: {2,20} :: {3,30} :: [])
 IN
 LET map = (REC map f -> (FUN s -> 
 MATCH s WITH | [] -> [] | x :: xs -> (f x) :: (map f xs)))
 IN
-LET split = FUN sez -> {map FST sez, map SND sez}
+LET split = FUN s -> {map f s, map g s}
+IN
+split a
