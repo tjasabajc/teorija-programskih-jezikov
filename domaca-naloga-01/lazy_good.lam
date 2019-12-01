@@ -1,0 +1,7 @@
+LET a = {10, 100 + 4 * 4 + 2 * 15}
+IN
+LET b = a :: a :: a :: a :: []
+IN
+LET f = FUN x -> FST a
+IN
+f b

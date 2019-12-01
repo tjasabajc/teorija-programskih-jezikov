@@ -100,7 +100,7 @@ let rec step = function
   | S.Cons (e, es) -> S.Cons (step e, es)
   | S.Fst S.Pair(e1, e2) -> if is_value e1 then e1 else step e1
   | S.Fst _ -> failwith "Expected a pair"
-  | S.Snd S.Pair(e1, e2) -> if is_value e2 then e1 else step e2
+  | S.Snd S.Pair(e1, e2) -> if is_value e2 then e2 else step e2
   | S.Snd _ -> failwith "Expected a pair"
   | S.Match (S.Nil, e1, x, xs, e2) -> e1
   | S.Match (S.Cons(y, ys), e1, x, xs, e2) -> if is_value y then step (S.subst [(x,y);(xs,ys)] e2) else S.Match (S.Cons(step y,ys), e1, x, xs, e2)

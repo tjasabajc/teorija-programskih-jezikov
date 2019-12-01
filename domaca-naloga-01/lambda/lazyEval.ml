@@ -65,11 +65,12 @@ let rec is_value = function
   | S.Int _ | S.Bool _ | S.Lambda _ | S.RecLambda _ | S.Nil -> true
   | S.Var _ | S.Plus _ | S.Minus _ | S.Times _ | S.Equal _ | S.Less _ | S.Greater _
   | S.IfThenElse _ | S.Apply _ | S.Fst _ | S.Snd _ | S.Match (_,_,_,_,_) -> false
-  | S.Cons (e1,e2) -> is_value e1 && is_value e2 
+  | S.Cons (e1,e2) -> is_value e1 && is_value e2
   | S.Pair (e1,e2) -> is_value e1 && is_value e2 
 
 let rec step = function
-  | S.Var _ | S.Int _ | S.Bool _ | S.Lambda _ | S.RecLambda _ | S.Nil -> failwith "Expected a non-terminal expression"
+  | S.Var _ | S.Bool _ | S.Lambda _ | S.RecLambda _ | S.Nil -> failwith "Expected a non-terminal expression"
+  | S.Int _ -> failwith "Expected ... int!"
   | S.Plus (S.Int n1, S.Int n2) -> S.Int (n1 + n2)
   | S.Plus (S.Int n1, e2) -> S.Plus (S.Int n1, step e2)
   | S.Plus (e1, e2) -> S.Plus (step e1, e2)
@@ -102,7 +103,7 @@ let rec step = function
   | S.Match (S.Cons(y, ys), e1, x, xs, e2) -> (S.subst [(x,y);(xs,ys)] e2)
   | S.Match (_,_,_,_,_) -> failwith "Ne gre"
   | S.Pair (e1,e2) -> S.Pair(step e1, e2)
-  | S.Cons (e1,e2) -> S.Cons (step e1, e2)
+  | S.Cons (e1,e2) -> if is_value e1 then S.Cons (e1,step e2) else S.Cons (step e1, e2)
  
 
 let big_step e =
@@ -113,4 +114,6 @@ let rec small_step e =
   print_endline (S.string_of_exp e);
   if not (is_value e) then
     (print_endline "  ~>";
+    print_endline (S.string_of_exp e);
+    print_endline "  ~>";
     small_step (step e))
