@@ -1,0 +1,8 @@
+
+
+LET h = FUN y -> FUN p -> ((FST p) > (SND p) + y)
+IN LET
+a = (TRUE :: TRUE :: [])
+IN 
+LET b = (h 10) IN 
+IF FALSE THEN a ELSE b

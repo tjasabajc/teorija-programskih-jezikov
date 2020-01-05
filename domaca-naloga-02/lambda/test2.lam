@@ -1,0 +1,5 @@
+LET h = FUN y -> (y + 5) 
+IN
+LET f = FUN x -> FUN y -> (h y)
+IN
+LET g = FUN f ->
